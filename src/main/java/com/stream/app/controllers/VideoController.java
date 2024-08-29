@@ -1,6 +1,7 @@
 package com.stream.app.controllers;
 
 import com.stream.app.entity.Video;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,7 +25,7 @@ public class VideoController {
     private VideoService videoService;
 
     @PostMapping("/create")
-    public ResponseEntity<CustomMessage> create(
+    public ResponseEntity<?> create(
             @RequestParam("file") MultipartFile file,
             @RequestParam("title") String title,
             @RequestParam("description") String description) {
@@ -35,8 +36,21 @@ public class VideoController {
         video.setDescription(description);
         video.setVideoId(UUID.randomUUID().toString());
 
-        videoService.save(video,file);
-        return null;
+
+       Video savedVideo= videoService.save(video,file);
+       if (savedVideo != null){
+           return ResponseEntity
+                   .status(HttpStatus.OK)
+                   .body(video);
+       }
+       else {
+           return ResponseEntity
+                  .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                  .body(CustomMessage.builder()
+                          .message("video not uploaded")
+                          .success(false)
+                          .build());
+       }
     }
 
     @GetMapping("/welcome")
