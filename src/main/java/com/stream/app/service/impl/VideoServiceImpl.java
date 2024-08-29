@@ -1,11 +1,17 @@
 package com.stream.app.service.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
+import com.stream.app.repository.VideoRepository;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -20,37 +26,62 @@ public class VideoServiceImpl implements VideoService {
 	@Value("${files.video}")
 	String DIR;
 
+	private VideoRepository videoRepository;
+
+
+	public VideoServiceImpl(VideoRepository videoRepository) {
+        this.videoRepository = videoRepository;
+    }
+
+
+
+@PostConstruct
+	public void init(){
+		File file = new File(DIR);
+
+		if (!file.exists()) {
+            file.mkdir();
+			System.out.println("Directory is created!");
+        }
+		else {
+			System.out.println("Directory already exists!");
+		}
+	}
+
 	@Override
 	public Video save(Video video, MultipartFile file) {
 		try {
+			// folder path :Create
 			String filename = file.getOriginalFilename();
 			String contentType = file.getContentType();
 			InputStream inputStream = file.getInputStream();
 
-			// folder path :Create
 
+			// folder path with to the folder
 			String cleanFileName = StringUtils.cleanPath(filename);
 			String cleanFolder=StringUtils.cleanPath(DIR);
 			
 			Path path = Paths.get(cleanFolder,cleanFileName);
-			
+
 			System.out.println(path);
-			
-			
-			// folder path with to the folder
 
 			// copy file to the folder
+			Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
 
-			// video mete data
+			// video meta data
+			video.setContentType(contentType);
+           video.setFilePath(path.toString());
 
 			// metadata save
+		return 	videoRepository.save(video);
 
 		} catch (IOException e) {
 			
 			e.printStackTrace();
+			return  null;
 		} 
 
-		return null;
+
 	}
 
 	@Override
