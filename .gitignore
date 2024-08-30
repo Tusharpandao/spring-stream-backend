@@ -22,8 +22,11 @@ target/
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
+/videos/
 /dist/
 /nbdist/
+/video/
+
 /.nb-gradle/
 build/
 !**/src/main/**/build/
